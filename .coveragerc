@@ -1,0 +1,19 @@
+[paths]
+source = traceplus
+
+[run]
+branch = true
+source =
+    traceplus
+    tests
+parallel = true
+
+omit =
+    .tox/*
+
+[report]
+show_missing = true
+precision = 2
+
+omit =
+    .tox/*

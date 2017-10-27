@@ -58,7 +58,7 @@ setup(
         'six',
         'click',
         'opentracing>=1.2.2',
-        'PyYAML>=3.10'
+        'wrapt>=1.10.11'
     ],
     tests_require = tests_require,
     test_suite = 'tests',

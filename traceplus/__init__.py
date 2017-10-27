@@ -31,14 +31,55 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 """
 
-from .base import Tracer
-from .conf import _initialize_tracer
+from __future__ import absolute_import
+import os
 
-__all__ = ('VERSION', 'Tracer', 'initialize')
+__all__ = ('VERSION', 'Tracer', 'initialize_from_module', 'initialize_from_file')
 
 VERSION = '0.0.1'
 
-initialize = _initialize_tracer
-del _initialize_tracer
+def init_from_module(settings_module = None, ignore_errors = True):
+    """
+    Initialize TracerPlus's tracer based on config module.
+    If the parameter is None, then use ``os.environ['TRACEPLUS_SETTINGS_MODULE']``
+    initialize the tracer.
 
+    After initialize the tracer, set this instance to opentracing.tracer as
+    a global default tracer.
 
+    >>> import traceplus
+
+    >>> # Or specify a local config file explicitly
+    >>> agent = traceplus.init_from_module(settings_module = 'traceplusapp.settings')
+
+    :param settings_module: the tracer's local configuration module.
+    :param ignore_errors: ignore startup errors
+    :return: Tracer instance
+    """
+
+    from traceplus.conf import settings, ENVIRONMENT_VARIABLE
+
+    if settings_module is None:
+        config = os.environ.get(ENVIRONMENT_VARIABLE)
+
+    return settings.initialize(settings_module, ignore_errors)
+
+def init_from_file(settings_file = None, ignore_errors = True):
+    """
+    Initialize TracerPlus's tracer based on config file.
+    If the parameter is None, then use ``os.environ['TRACEPLUS_SETTINGS_FILE']``
+    initialize the tracer.
+
+    After initialize the tracer, set this instance to opentracing.tracer as
+    a global default tracer.
+
+    >>> import traceplus
+
+    >>> # Or specify a local config file explicitly
+    >>> agent = traceplus.init_from_file(settings_file = 'traceplusapp.settings')
+
+    :param settings_file: the tracer's local configuration file.
+    :param ignore_errors: ignore startup errors
+    :return: Tracer instance
+    """
+    pass

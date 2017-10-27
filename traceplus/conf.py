@@ -2,101 +2,105 @@ from __future__ import absolute_import, unicode_literals
 
 import logging
 import os
+import importlib
 
-import yaml
 try:
     from yaml import CLoader as Loader, CDumper as Dumper
 except ImportError:
     from yaml import Loader, Dumper
 
-from traceplus.packages import six
-
-from traceplus.utils.pattern import Factory, Singleton
-from traceplus.utils.exceptions import ImproperlyConfigured
-from traceplus.utils.misc import environ_as_bool
+from traceplus.common.functional import LazyObjectProxy
+from traceplus.utils import exceptions
+from traceplus import default_settings
+from traceplus import base
 
 __all__ = (
     'settings'
 )
 
+ENVIRONMENT_VARIABLE = "TRACEPLUS_SETTINGS_MODULE"
+
 logger = logging.getLogger('traceplus')
 
-def _initialize_tracer(config = None, ignore_errors = True):
-    """
-    Initialize TracerPlus's tracer based on config file.
-    If the parameter is None, then use ``os.environ['TRACEPLUS_CONFIG']``
-    initialize the tracer. The local config file allways has higher priority.
+class LazySettings(LazyObjectProxy):
 
-    After initialize the tracer, set this instance to opentracing.tracer as
-    a global default tracer.
+    @property
+    def configured(self):
+        try:
+            target = object.__getattribute__(self, '__target__')
+        except AttributeError:
+            return False
+        else:
+            return True
 
-    >>> from traceplus import initialize
+    def initialize(self, settings_module, ignore_errors = True):
+        if self.configured:
+            logger.warning('Settings already configured. Ignore re-init')
+            return base.Tracer()
 
-    >>> # Read configuration from enviroment ``os.environ['TRACEPLUS_CONFIG']``
-    >>> agent = initialize()
+        try:
+            self.__wrapped__ = Settings(settings_module)
+            return base.Tracer()
 
-    >>> # Or specify a local config file explicitly
-    >>> agent = initialize(config = '/etc/traceplus/traceplus.yaml')
+        except Exception:
+            _raise_configuration_error('settings', None, ignore_errors)
+            return base.NoopsTracer()
 
-    :param config: the tracer's local configuration file path.
-    :param ignore_errors: ignore startup errors
-    :return: Tracer instance
-    """
-
-    try:
-        return SettingsFactory().create(config, ignore_errors = ignore_errors).initialize_tracer()
-    except:
-        pass
-
-class Settings(object):
+class BaseSettings(object):
     """
     Common logic for settings whether set by a module or by the user.
     """
     pass
 
-class ErrorTracerSettings(Settings):
+class ErrorTracerSettings(BaseSettings):
     pass
 
-class TracePlusSettings(six.with_metaclass(Singleton, Settings)):
+class Settings(BaseSettings):
 
-    # application name
-    app_name = os.environ.get('TRACEPLUS_APP_NAME', 'Python Application')
+    _improper_configured = False
 
-    # tracer is enabled or not
-    enabled = environ_as_bool('TRACEPLUS_ENABLED', True)
+    def __init__(self, settings_module = None):
+        settings_module = os.environ.get(ENVIRONMENT_VARIABLE)
+        if not settings_module:
+            self._improper_configured = True
+            raise ValueError(
+                "Requested settings_module, but settings_module are not configured. "
+                "You must either define the environment variable %s "
+                "or call `traceplus.init_from_module()`/`traceplus.init_from_file()` "
+                "before accessing settings."
+                % ENVIRONMENT_VARIABLE)
 
-    # the default log_file path
-    log_file = os.environ.get('TRACEPLUS_LOG', '/tmp/traceplus_agent.log')
+        for setting in dir(default_settings):
+            if setting.isupper():
+                setattr(self, setting, getattr(default_settings, setting))
 
-    # application public/secret key
-    public_key = os.environ.get('TRACEPLUS_PUBLIC_KEY', None)
-    secret_key = os.environ.get('TRACEPLUS_SECRET_KEY', None)
+        self.SETTINGS_MODULE = settings_module
 
-    error_tracer = ErrorTracerSettings()
+        mod = importlib.import_module(self.SETTINGS_MODULE)
 
-    def __init__(self, config = None, ignore_errors = True):
-        pass
+        self._user_settings = set()
+        for setting in dir(mod):
+            if setting.isupper():
+                setting_value = getattr(mod, setting)
+                setattr(self, setting, setting_value)
+                self._user_settings.add(setting)
 
-    def initialize_tracer(self):
-        pass
+        self._improper_configured = False
 
-class SettingsFactory(Factory):
+def _raise_configuration_error(item, options = None, ignore_errors = True):
+    logger.error('CONFIGURATION ERROR!')
 
-    def create(self, config = None, **kwargs):
-        ignore_errors = kwargs.get('ignore_errors', True)
+    if item:
+        logger.error('Item = %s' % item)
+    if options:
+        logger.error('Options = %r' % options)
 
-        # use config as first choice
-        if config is None:
-            config = os.environ.get('TRACEPLUS_CONFIG', None)
+    logger.exception('Exception Detail:')
+    if not ignore_errors:
+        raise exceptions.ImproperlyConfigured(
+            'Invalid configuration. Check Traceplus agent '
+            'log file for further details.'
+        )
 
-        if config:
-            return TracePlusSettings(config, ignore_errors)
 
-def _raise_configuration_error(section, item):
-
-    logger.error('CONFIGURATION ERROR')
-
-    if section:
-        pass
-
-settings = TracePlusSettings()
+settings = LazySettings(Settings)
