@@ -32,12 +32,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
 from .base import Tracer
-from .config import _initialize_tracer
+from .conf import _initialize_tracer
 
 __all__ = ('VERSION', 'Tracer', 'initialize')
 
 VERSION = '0.0.1'
 
 initialize = _initialize_tracer
+del _initialize_tracer
 
 

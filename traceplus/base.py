@@ -3,14 +3,13 @@ from __future__ import print_function, unicode_literals
 import logging
 import threading
 import opentracing
-import six
 
 class Tracer(object):
     """The basic Trace++ client.
 
     >>> from traceplus import Tracer
 
-    >>> # Read configuration from enviroment ``os.environ['TRACE_PLUS_DSN']``
+    >>> # Read configuration from enviroment ``os.environ['TRACEPLUS_DSN']``
     >>> agent = Tracer()
 
     >>> # Specify a DSN explicitly

@@ -36,5 +36,5 @@ def dump_sysinfo():
 
 def dump_envs():
     for key in sorted(os.environ.keys()):
-        if key.startswith('TRACE_PLUS_') or key.startswith('PYTHON'):
+        if key.startswith('TRACEPLUS_') or key.startswith('PYTHON'):
             log_message('%s = %r', key, os.environ.get(key))

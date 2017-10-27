@@ -24,6 +24,7 @@ tests_require = [
     'flake8==3.4.1',
     'pytest>=3.2.0,<3.3.0',
     'pytest-cov',
+    'six',
 ]
 
 setup(
@@ -54,11 +55,13 @@ setup(
     ],
     packages=find_packages(exclude=['docs', 'tests']),
     install_requires=[
+        'six',
         'click',
         'opentracing>=1.2.2',
         'PyYAML>=3.10'
     ],
     tests_require = tests_require,
+    test_suite = 'tests',
     extras_require={
         'tests': tests_require
     },

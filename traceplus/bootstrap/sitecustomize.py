@@ -5,7 +5,7 @@ import time
 import sys
 import imp
 
-bootstrap_debug = os.environ.get('TRACE_PLUS_BOOTSTRAP_DEBUG', 0)
+bootstrap_debug = os.environ.get('TRACEPLUS_BOOTSTRAP_DEBUG', 0)
 
 def console_message(text, *args):
     if not bootstrap_debug:
@@ -32,7 +32,7 @@ if hasattr(sys, 'flags'):
 console_message('sys.path = %r', sys.path)
 
 for name in sorted(os.environ.keys()):
-    if name.startswith('TRACE_PLUS_') or name.startswith('PYTHON'):
+    if name.startswith('TRACEPLUS_') or name.startswith('PYTHON'):
         console_message('%s = %r', name, os.environ.get(name))
 
 bootstrap_root = os.path.dirname(__file__)
@@ -54,13 +54,13 @@ else:
     console_message('sitecustomize = %r', (file, pathname, description))
     imp.load_module('sitecustomize', file, pathname, description)
 
-expected_python_prefix = os.environ.get('TRACE_PLUS_PYTHON_PREFIX')
+expected_python_prefix = os.environ.get('TRACEPLUS_PYTHON_PREFIX')
 actual_python_prefix = os.path.realpath(os.path.normpath(sys.prefix))
 
 console_message('expected_python_prefix = %r', expected_python_prefix)
 console_message('actual_python_prefix = %r', actual_python_prefix)
 
-expected_python_version = os.environ.get('TRACE_PLUS_PYTHON_VERSION')
+expected_python_version = os.environ.get('TRACEPLUS_PYTHON_VERSION')
 actual_python_version = '.'.join(map(str, sys.version_info[:2]))
 
 console_message('expected_python_version = %r', expected_python_version)

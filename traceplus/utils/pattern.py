@@ -1,5 +1,6 @@
 # This file is copy from https://github.com/tylerlaberge/PyPattyrn with MIT License
-import six
+
+from traceplus.packages import six
 from abc import abstractmethod, ABCMeta
 
 class Singleton(type):

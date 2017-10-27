@@ -38,10 +38,10 @@ def run(ctx, args):
             python_path = "%s%s%s" % (bootstrap_root, os.path.pathsep, os.environ['PYTHONPATH'])
 
     os.environ['PYTHONPATH'] = python_path
-    os.environ['TRACE_PLUS_BOOTSTRAP_DEBUG'] = '1' if ctx.obj['BOOTSTRAP_DEBUG'] else '0'
-    os.environ['TRACE_PLUS_PYTHON_PREFIX'] = os.path.realpath(
+    os.environ['TRACEPLUS_BOOTSTRAP_DEBUG'] = '1' if ctx.obj['BOOTSTRAP_DEBUG'] else '0'
+    os.environ['TRACEPLUS_PYTHON_PREFIX'] = os.path.realpath(
             os.path.normpath(sys.prefix))
-    os.environ['TRACE_PLUS_PYTHON_VERSION'] = '.'.join(
+    os.environ['TRACEPLUS_PYTHON_VERSION'] = '.'.join(
             map(str, sys.version_info[:2]))
 
     dump_envs()
