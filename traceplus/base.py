@@ -1,20 +1,43 @@
 from __future__ import print_function, unicode_literals
 
 import logging
-import opentracing
 
-from traceplus.utils.pattern import Singleton
-from traceplus.packages import six
+from traceplus.common.functional import LazyObjectProxy
 
-class Tracer(six.with_metaclass(Singleton, object)):
+__all__ = [
+    'Tracer',
+    'NoopTracer',
+    'tracer'
+]
+
+class Tracer(object):
     """The basic Trace++ client.
     """
-
     logger = logging.getLogger('traceplus.tracer')
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
         pass
 
+    def set_default(self):
+        set_default_tracer(self)
 
-class NoopsTracer(Tracer):
-    pass
+class NoopTracer(object):
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def set_default(self):
+        set_default_tracer(self)
+
+
+default_tracer = None
+
+def get_default_tracer():
+    global default_tracer
+    return default_tracer
+
+def set_default_tracer(_tracer):
+    global default_tracer
+    default_tracer = _tracer
+
+
+tracer = LazyObjectProxy(get_default_tracer)
